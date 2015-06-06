@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# hopefully upgrade need to update this values only
+NEXUS_VERSION=2.11.3-01
+WRAPPER_VERSION=3.5.26
+
+ROOT=$OPENSHIFT_DATA_DIR
+
+# get nexus
+cd $ROOT
+wget https://sonatype-download.global.ssl.fastly.net/nexus/oss/nexus-$NEXUS_VERSION-bundle.tar.gz
+tar xzf nexus-$NEXUS_VERSION-bundle.tar.gz
+rm -Rf nexus nexus-$NEXUS_VERSION-bundle.tar.gz sonatype-work
+mv nexus-$NEXUS_VERSION nexus
+
+# set params
+cd nexus
+sed -ig 's/^application-port.*$/application-port='$OPENSHIFT_DIY_PORT'/' conf/nexus.properties
+sed -ig 's/^application-host.*$/application-host='$OPENSHIFT_DIY_IP'/' conf/nexus.properties
+sed -ig 's/^nexus-webapp-context-path=\/nexus$/nexus-webapp-context-path=\//' conf/nexus.properties
+sed -ig 's#^nexus-work=.*$#nexus-work='$OPENSHIFT_DATA_DIR'/work#g' conf/nexus.properties
+
+# link logs
+rm -rf logs
+ln -s $OPENSHIFT_LOG_DIR logs
+
+# update wrapper
+cd $ROOT
+wget http://wrapper.tanukisoftware.com/download/$WRAPPER_VERSION/wrapper-delta-pack-$WRAPPER_VERSION.tar.gz
+tar xzf wrapper-delta-pack-$WRAPPER_VERSION.tar.gz
+rm -Rf wrapper-delta-pack-$WRAPPER_VERSION.tar.gz
+WRAPPER_DIST=$ROOT/wrapper-delta-pack-$WRAPPER_VERSION
+
+# remove old bin and copy new execs
+rm -Rf nexus/bin/*
+cp ${WRAPPER_DIST}/lib/wrapper.jar $ROOT/nexus/lib
+cp ${WRAPPER_DIST}/bin/wrapper-linux-x86-64 $ROOT/nexus/bin
+cp ${OPENSHIFT_REPO_DIR}/nexus $ROOT/nexus/bin
+cp ${OPENSHIFT_REPO_DIR}/wrapper.conf $ROOT/nexus/conf
+
+echo -e "\nwrapper.backend.type=PIPE" >> nexus/conf/wrapper.conf
