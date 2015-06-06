@@ -17,7 +17,7 @@ Get Nexus running
 Grab this quickstart codes and make it working for you!
 
     cd nexus
-    git remote add nexus git://github.com/shekhargulati/nexus.git
+    git remote add nexus git://github.com/akurdyukov/openshift-nexus.git
     git pull -s recursive -X theirs nexus master
     git push
 
@@ -28,3 +28,8 @@ That's it, you can now checkout your nexus at:
 The default nexus user is admin/admin123
 
 Note: You can get the latest nexus code from github at https://github.com/sonatype/nexus-oss
+
+Upgrading
+---------
+Check versions for Sonatype Nexus and Tanuki Java Wrapper in `.openshift/action_hooks/build` script.
+
